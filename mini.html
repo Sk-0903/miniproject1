@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sales Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f5f5f5;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .card {
+            display: inline-block;
+            background: white;
+            padding: 20px;
+            margin: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        canvas {
+            max-width: 600px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>📊 Sales Dashboard</h1>
+
+<div class="card" id="summary"></div>
+
+<canvas id="salesChart"></canvas>
+
+<script>
+async function loadData() {
+    const response = await fetch('sales_data.csv');
+    const text = await response.text();
+
+    const rows = text.split('\n').slice(1);
+    let totalRevenue = 0;
+    let totalUnits = 0;
+    let monthlySales = {};
+
+    rows.forEach(row => {
+        const cols = row.split(',');
+
+        if(cols.length > 1){
+            let revenue = parseFloat(cols[6]);
+            let units = parseInt(cols[5]);
+            let month = cols[7];
+
+            totalRevenue += revenue;
+            totalUnits += units;
+
+            monthlySales[month] = (monthlySales[month] || 0) + revenue;
+        }
+    });
+
+    document.getElementById("summary").innerHTML = `
+        <h3>Total Revenue: $${totalRevenue.toFixed(2)}</h3>
+        <h3>Total Units: ${totalUnits}</h3>
+    `;
+
+    const labels = Object.keys(monthlySales);
+    const data = Object.values(monthlySales);
+
+    new Chart(document.getElementById("salesChart"), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Monthly Revenue',
+                data: data
+            }]
+        }
+    });
+}
+
+loadData();
+</script>
+
+</body>
+</html>
